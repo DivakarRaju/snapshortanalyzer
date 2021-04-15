@@ -5,18 +5,66 @@ session = boto3.Session(profile_name='shotty')
 ec2 = session.resource('ec2')
 
 
-@click.command()
-def list_instances():
-    for i in ec2.instances.all():
+def filter_instances(project):
+    "Filters instaces based on the tags"
+    instances = []
+    if project:
+        filters = [{'Name': 'tag:project', 'Values': [project]}]
+        instances = ec2.instances.filter(Filters=filters)
+
+    else:
+        instances = ec2.instances.all()
+    return instances
+
+
+@click.group()
+def instances():
+    "Command for instances"
+
+
+@instances.command("list")
+@click.option('--project', default=None,
+              help="Only instances for project (tag project:<name>)")
+def list_instances(project):
+    "List EC2 instances"
+    instances = filter_instances(project)
+    for i in instances:
+        tags = {t['Key']: t['Value'] for t in i.tags or []}
         print(','.join((
             i.id,
             i.instance_type,
             i.placement['AvailabilityZone'],
             i.state['Name'],
-            i.public_dns_name)))
+            i.public_dns_name,
+            tags.get('project', '<no project>'))))
 
     return
 
 
+@instances.command("stop")
+@click.option('--project', default=None,
+              help="Only instances for project (tag project:<name>)")
+def stop_instances(project):
+    "Stops the instances"
+    instances = filter_instances(project)
+
+    for i in instances:
+        print("Stopping {0} instance".format(i.id))
+        i.stop()
+    return
+
+
+@instances.command("start")
+@click.option('--project', default=None,
+              help="Only instances for project (tag project:<name>)")
+def start_instance(project):
+    "Starts the instance"
+    instances = filter_instances(project)
+    for i in instances:
+        print("Starting {0} instance".format(i.id))
+        i.start()
+    return
+
+
 if __name__ == '__main__':
-    list_instances()
+    instances()
