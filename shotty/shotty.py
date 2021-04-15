@@ -18,6 +18,78 @@ def filter_instances(project):
 
 
 @click.group()
+def cli():
+    "Shotty manages these snapshots"
+
+
+@cli.group("snapshots")
+def snapshots():
+    "commands for snapshots"
+
+
+@snapshots.command("list")
+@click.option('--project', default=None,
+              help="List the volume of the instances")
+def list_snapshots(project):
+    "List the snapshots of the volumes"
+    instances = filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            for s in v.snapshots.all():
+                print(', '.join((
+                    s.id,
+                    v.id,
+                    i.id,
+                    s.state,
+                    s.progress,
+                    s.start_time.strftime("%c")
+                )))
+    return
+
+
+@snapshots.command("create",
+                   help="Creates snapshots of all volumes")
+@click.option('--project', default=None,
+              help="List the volume of the instances")
+def create_snapshots(project):
+    "Create snapshots for EC2 instances"
+
+    instances = filter_instances(project)
+    for i in instances:
+        i.stop()
+        for v in i.volumes.all():
+            print("Creating snaphots for volume {0}".format(v.id))
+            v.create_snapshot(Description="Created by snapshotAlyzer 30000")
+    return
+
+
+@cli.group("volumes")
+def volumes():
+    "command for volumes"
+
+
+@volumes.command("list")
+@click.option('--project', default=None,
+              help="List the volume of the instances")
+def list_volumes(project):
+    "List the volumes of the instances"
+    instances = filter_instances(project)
+
+    for i in instances:
+        for v in i.volumes.all():
+            print(', '.join((
+                v.id,
+                i.id,
+                v.state,
+                str(v.size) + "GiB",
+                v.encrypted and "Encrypted" or "Not Encrypted"
+            )))
+
+    return
+
+
+@cli.group("instances")
 def instances():
     "Command for instances"
 
@@ -67,4 +139,4 @@ def start_instance(project):
 
 
 if __name__ == '__main__':
-    instances()
+    cli()

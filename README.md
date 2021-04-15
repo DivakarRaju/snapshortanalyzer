@@ -6,7 +6,7 @@ Demo project to manage AWS EC2 instance snapshots
 
 This project is a demo, and uses boto3 to manage AWS EC2 instance snapshots
 
-##Configuring 
+## Configuring 
 
 shotty uses the configuration file created by the AWS cli. e.g
 
@@ -14,8 +14,9 @@ shotty uses the configuration file created by the AWS cli. e.g
 
 ## Running
 
-`pipenv run python shotty/shotty.py <command> <--project=PROJECT>`
+`pipenv run python shotty/shotty.py <command> <sub-command> <--project=PROJECT>`
 
-*command* is list, start or stop
+*command* is instances, volumes, snapshots
+*sub-command* - depends on command
 *PROJECT*  is optional
  
