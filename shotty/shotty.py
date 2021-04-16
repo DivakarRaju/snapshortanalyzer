@@ -28,6 +28,10 @@ def snapshots():
     "commands for snapshots"
 
 
+def has_pending_snapshots(volume):
+    snapshots = list(volume.snapshots.all())
+    return snapshots and snapshots[0].state == 'pending'
+
 @snapshots.command("list")
 @click.option('--project', default=None,
               help="List the volume of the instances")
@@ -65,6 +69,9 @@ def create_snapshots(project):
         i.stop()
         i.wait_until_stopped()
         for v in i.volumes.all():
+            if has_pending_snapshots(v):
+                print("Skipping {0}, snapshot already in progress".format(v.id))
+                continue
             print(" Creating snaphots for volume {0}".format(v.id))
             v.create_snapshot(Description="Created by snapshotAlyzer 30000")
 
