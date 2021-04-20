@@ -1,6 +1,6 @@
 # snapshortanalyzer
 
-Demo project to manage AWS EC2 instance snapshots
+This Project is used to manage AWS EC2 instance snapshots
 
 ## About
 
